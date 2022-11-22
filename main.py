@@ -25,20 +25,20 @@ if __name__ == '__main__':
         # report_id = checker.create_access_report( from_date=None, to_date="2022-04-30", resource_type="all", exclude_folders=["Text"], sort_by="accessed_at" )
 
 
-        # report_id="e2552f6074a4958cca8aacb8b4ef079ab7196a88a9824158edad63c74886b916"
-        # resources = checker.fetch_access_report(report_id, 300)
+        report_id="e2552f6074a4958cca8aacb8b4ef079ab7196a88a9824158edad63c74886b916"
+        resources = checker.fetch_access_report(report_id, 300)
 
-        # logging.info("Checker ended at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+ " for " + domain)
+        logging.info("Checker ended at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+ " for " + domain)
 
-        notifier = Notifier()
-        notifier.notifiers = config['notifiers']
-        notifier.messages = [{    
-            "status":"#D00000",
-            "long_message":"Hello",
-            "short_message":"Hi",
-            "time_string":"1212",
-            "domain":"jivox",
-            "username": "Cloudinary",
-            "icon_url": "https://cloudinary-res.cloudinary.com/image/upload/website/cloudinary_web_favicon.png"
-        }]
-        notifier.notify()
+        # notifier = Notifier()
+        # notifier.notifiers = config['notifiers']
+        # notifier.messages = [{    
+        #     "status":"#D00000",
+        #     "long_message":"Hello",
+        #     "short_message":"Hi",
+        #     "time_string":"1212",
+        #     "domain":"jivox",
+        #     "username": "Cloudinary",
+        #     "icon_url": "https://cloudinary-res.cloudinary.com/image/upload/website/cloudinary_web_favicon.png"
+        # }]
+        # notifier.notify()
