@@ -3,6 +3,7 @@ import logging
 import json
 import requests
 import csv
+import pandas as pd
 
 class CloudinaryChecker(object):
     def __init__(self, url, api_key, api_secret, domain, notifiers = {}):
@@ -88,3 +89,15 @@ class CloudinaryChecker(object):
             logging.info('Report Generated Successfully for : ' + report_id + "after "+  str(sleep_seconds*counter) + "seconds")
         resources = self.get_report_data(report_id)
         return resources
+
+    def delete_resources( self, report_id ):
+        nrows=0
+        chunks=pd.read_csv(report_id,chunksize=100)
+        for chunk in chunks:
+            data = {'public_ids[]' : list(chunk["name"])}
+            url = "https://"+self.url+"/"+self.domain+"/resources/image/upload"
+            response = requests.delete( url, auth =(self.api_key, self.api_secret), data = data )
+            response=json.loads(response.text)
+            logging.info(response)  
+        logging.info('Requested Resources Deleted for: ' + report_id)
+        return True
