@@ -5,7 +5,7 @@ import logging
 
 class Notifier(object):
     def notify(self):
-        lambda_client = boto3.client('lambda')
+        lambda_client = boto3.client('lambda',region_name='us-east-1')
         for message in self.messages:
             status = message['status']
             domain = message['domain']
@@ -38,7 +38,6 @@ class Notifier(object):
                 "text": "%s",
                 "attachments": [
                     {
-                        "pretext": "Alert !!!",
                         "color": "%s",
                         "fields": [
                             {
