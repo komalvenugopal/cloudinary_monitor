@@ -6,12 +6,12 @@ import csv
 import pandas as pd
 
 class CloudinaryChecker(object):
-    def __init__(self, url, api_key, api_secret, domain, notifiers = {}):
+    def __init__(self, url, api_key, api_secret, domain, notifier = {}):
         self.url = url
         self.api_key = api_key
         self.api_secret = api_secret
         self.domain = domain
-        self.notifiers = notifiers
+        self.notifier = notifier
         self.messages = []
 
     def get_folders(self):

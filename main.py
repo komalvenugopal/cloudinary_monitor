@@ -20,7 +20,7 @@ if __name__ == '__main__':
             api_key=config['cloudinary']['api_key'],
             api_secret=config['cloudinary']['api_secret'],
             domain=domain,
-            notifiers=config['notifiers']
+            notifier=notifier
         )
         logging.info(domain + 'Checker started at: ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
@@ -34,15 +34,24 @@ if __name__ == '__main__':
         report_id = checker.create_access_report( from_date=None, to_date="2022-04-30", resource_type="all", exclude_folders=folders, sort_by="accessed_at" )
         resources = checker.fetch_access_report(report_id, 300)
         logging.info("Checker ended at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+ " for " + domain)
-
-        notifier.messages = [{
-            "status": "#008000" if len(resources)>0 else "#D00000",
-            "long_message":"Generated Assets Data for: "+ report_id,
-            "short_message": "Success" if len(resources)>0 else "Failed",
-            "time_string":datetime.datetime.now(),
-            "domain":domain,
-            "username": "Cloudinary",
-            "icon_url": "https://cloudinary-res.cloudinary.com/image/upload/website/cloudinary_web_favicon.png"
+        
+        notifier.messages = [
+        {
+            "slack":{
+                "status": "#008000" if len(resources)>0 else "#D00000",
+                "long_message":"Cloudinary Generated Assets Data for: "+ report_id,
+                "short_message": "Success" if len(resources)>0 else "Failed",
+                "domain":domain
+            },
+            "lambda": {
+                "name": "Cloudinary Generated Assets Data for: "+ report_id,
+                "body": "Cloudinary Generated Assets Data for: "+ report_id,
+                "subject": "Cloudinary Deletion Status: "+ "Success" if len(resources)>0 else "Failed"
+            },
+            "sns": {
+                "body": "Cloudinary Generated Assets Data for: "+ report_id,
+                "subject": "Cloudinary Report Status: "+ "Success" if len(resources)>0 else "Failed"
+            }
         }]
         notifier.notify()
 
@@ -52,13 +61,22 @@ if __name__ == '__main__':
         response = checker.delete_resources(report_id=report_id+".csv")
         logging.info(domain + "Deletion Ended at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+ " for " + domain)
 
-        notifier.messages = [{
-            "status": "#008000" if response==True else "#D00000",
-            "long_message":"Deleted Assets Data for "+ report_id,
-            "short_message": "Success" if response==True else "Failed",
-            "time_string":datetime.datetime.now(),
-            "domain":domain,
-            "username": "Cloudinary",
-            "icon_url": "https://cloudinary-res.cloudinary.com/image/upload/website/cloudinary_web_favicon.png"
+        notifier.messages = [
+        {
+            "slack":{
+                "status": "#008000" if len(resources)>0 else "#D00000",
+                "long_message":"Cloudinary Deleted Assets Data for: "+ report_id,
+                "short_message": "Success" if len(resources)>0 else "Failed",
+                "domain":domain
+            },
+            "lambda": {
+                "name": "Cloudinary Deleted Assets Data for: "+ report_id,
+                "body": "Cloudinary Deleted Assets Data for: "+ report_id,
+                "subject": "Cloudinary Deletion Status: "+ "Success" if len(resources)>0 else "Failed"
+            },
+            "sns": {
+                "body": "Cloudinary Deleted Assets Data for: "+ report_id,
+                "subject": "Cloudinary Report Status: "+ "Success" if len(resources)>0 else "Failed"
+            }
         }]
         notifier.notify()
