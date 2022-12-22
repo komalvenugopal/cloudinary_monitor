@@ -63,7 +63,7 @@ class CloudinaryChecker(object):
         max_results = 500
         f=open(report_id+".csv", 'a')
         writer = csv.writer(f)
-        writer.writerow(["id","name","url","type","access_mode","last_access_time"])
+        writer.writerow(["id","name","url","resource_type","type","access_mode","last_access_time"])
 
         while True:   
             url = "https://"+self.url+"/"+self.domain+"/resources/last_access_report"+"/"+report_id
@@ -78,7 +78,7 @@ class CloudinaryChecker(object):
                 next_cursor = response["next_cursor"]
                 print(next_cursor)
             total_resources.extend(resources)
-            asset_ids = [[resource["asset_id"],resource["public_id"],resource["url"],resource["type"],resource["access_mode"],resource["last_access"]] for resource in resources]
+            asset_ids = [[resource["asset_id"],resource["public_id"],resource["url"],resource["resource_type"],resource["type"],resource["access_mode"],resource["last_access"]] for resource in resources]
             for row in asset_ids:
                 writer.writerow(row)
             if len(resources) < max_results:
