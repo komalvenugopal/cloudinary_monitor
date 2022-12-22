@@ -7,6 +7,14 @@ from checkers.last_accessed import CloudinaryChecker
 from notifiers.notify import Notifier
 # import requests,json
 
+def generate_report(checker,from_date=None,to_date=datetime.date.today(),resource_type="all",folders=[]):
+    report_id = checker.create_access_report( from_date=from_date, to_date=to_date, resource_type=resource_type, exclude_folders=folders, sort_by="accessed_at" )
+    return report_id
+
+def fetch_report(domain, checker,report_id, sleep_seconds):
+    resources = checker.fetch_access_report(domain, report_id, sleep_seconds)
+    return resources
+
 if __name__ == '__main__':
     directory = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
     config = yaml.load(open(os.path.join(directory, 'config.yml'), 'r').read(),Loader=yaml.Loader)
@@ -24,59 +32,13 @@ if __name__ == '__main__':
         )
         logging.info(domain + 'Checker started at: ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
-        # folders = checker.get_folders()
-        # resource_type=["videos"]
-        # resources= [1]
-        # report_id="e2552f6074a4958cca8aacb8b4ef079ab7196a88a9824158edad63c74886b916"
-
         ''' GENERATE '''
-        folders=[]
-        report_id = checker.create_access_report( from_date=None, to_date="2022-04-30", resource_type="all", exclude_folders=folders, sort_by="accessed_at" )
-        resources = checker.fetch_access_report(report_id, 300)
-        logging.info("Checker ended at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+ " for " + domain)
-        
-        notifier.messages = [
-        {
-            "slack":{
-                "status": "#008000" if len(resources)>0 else "#D00000",
-                "long_message":"Cloudinary Generated Assets Data for: "+ report_id,
-                "short_message": "Success" if len(resources)>0 else "Failed",
-                "domain":domain
-            },
-            "lambda": {
-                "name": "Cloudinary Generated Assets Data for: "+ report_id,
-                "body": "Cloudinary Generated Assets Data for: "+ report_id,
-                "subject": "Cloudinary Deletion Status: "+ "Success" if len(resources)>0 else "Failed"
-            },
-            "sns": {
-                "body": "Cloudinary Generated Assets Data for: "+ report_id,
-                "subject": "Cloudinary Report Status: "+ "Success" if len(resources)>0 else "Failed"
-            }
-        }]
-        notifier.notify()
-
+        # folders = checker.get_folders()
+        # report_id = generate_report(checker=checker, resource_type=["videos"], to_date="2022-07-23")
+        # resources = fetch_report(domain=domain, checker=checker, report_id=report_id, sleep_seconds=300)
 
         ''' DELETE '''
-        logging.info(domain + "Deletion Started at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+ " for " + domain)
-        response = checker.delete_resources(report_id=report_id+".csv")
-        logging.info(domain + "Deletion Ended at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+ " for " + domain)
+        report_id = "7251"
+        response = checker.delete_resources(domain, report_id=report_id)
 
-        notifier.messages = [
-        {
-            "slack":{
-                "status": "#008000" if len(resources)>0 else "#D00000",
-                "long_message":"Cloudinary Deleted Assets Data for: "+ report_id,
-                "short_message": "Success" if len(resources)>0 else "Failed",
-                "domain":domain
-            },
-            "lambda": {
-                "name": "Cloudinary Deleted Assets Data for: "+ report_id,
-                "body": "Cloudinary Deleted Assets Data for: "+ report_id,
-                "subject": "Cloudinary Deletion Status: "+ "Success" if len(resources)>0 else "Failed"
-            },
-            "sns": {
-                "body": "Cloudinary Deleted Assets Data for: "+ report_id,
-                "subject": "Cloudinary Report Status: "+ "Success" if len(resources)>0 else "Failed"
-            }
-        }]
-        notifier.notify()
+        logging.info("Checker ended at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+ " for " + domain)

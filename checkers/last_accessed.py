@@ -4,6 +4,9 @@ import json
 import requests
 import csv
 import pandas as pd
+import numpy as np
+import datetime
+
 
 class CloudinaryChecker(object):
     def __init__(self, url, api_key, api_secret, domain, notifier = {}):
@@ -84,20 +87,61 @@ class CloudinaryChecker(object):
         return total_resources
 
     
-    def fetch_access_report(self, report_id, sleep_seconds, counter=0):        
+    def fetch_access_report(self, domain, report_id, sleep_seconds, counter=0):        
         if (self.check_report_status(report_id, sleep_seconds)):
             logging.info('Report Generated Successfully for : ' + report_id + "after "+  str(sleep_seconds*counter) + "seconds")
         resources = self.get_report_data(report_id)
+        self.notifier.messages = [
+        {
+            "slack":{
+                "status": "#008000" if len(resources)>0 else "#D00000",
+                "long_message":"Cloudinary Generated Assets Data for: "+ report_id,
+                "short_message": "Success" if len(resources)>0 else "Failed",
+                "domain": domain
+            },
+            "lambda": {
+                "name": "Cloudinary Generated Assets Data for: "+ report_id,
+                "body": "Cloudinary Generated Assets Data for: "+ report_id,
+                "subject": "Cloudinary Deletion Status: "+ "Success" if len(resources)>0 else "Failed"
+            },
+            "sns": {
+                "body": "Cloudinary Generated Assets Data for: "+ report_id,
+                "subject": "Cloudinary Report Status: "+ "Success" if len(resources)>0 else "Failed"
+            }
+        }]
+        self.notifier.notify()
         return resources
 
-    def delete_resources( self, report_id ):
+    def delete_resources( self, domain, report_id ):
+        logging.info("Deletion Started at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+ " for " + report_id)
         nrows=0
-        chunks=pd.read_csv(report_id,chunksize=100)
+        chunks=pd.read_csv(report_id+".csv",chunksize=3)
+                
         for chunk in chunks:
-            data = {'public_ids[]' : list(chunk["name"])}
-            url = "https://"+self.url+"/"+self.domain+"/resources/image/upload"
-            response = requests.delete( url, auth =(self.api_key, self.api_secret), data = data )
-            response=json.loads(response.text)
-            logging.info(response)  
-        logging.info('Requested Resources Deleted for: ' + report_id)
+            chunk_groups = chunk.groupby(by='resource_type',sort=None)
+            for group in chunk_groups:
+                data = {'public_ids[]' : list(group[1]["name"])}            
+                url = "https://"+self.url+"/"+self.domain+"/resources/"+ group[0] +"/upload"
+                response = requests.delete( url, auth =(self.api_key, self.api_secret), data = data )
+                logging.info(json.loads(response.text))
+        logging.info("Deletion Ended at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+ " for " + report_id)
+        self.notifier.messages = [
+        {
+            "slack":{
+                "status": "#008000" if response else "#D00000",
+                "long_message":"Cloudinary Deleted Assets Data for: "+ report_id,
+                "short_message": "Success" if response else "Failed",
+                "domain": domain
+            },
+            "lambda": {
+                "name": "Cloudinary Deleted Assets Data for: "+ report_id,
+                "body": "Cloudinary Deleted Assets Data for: "+ report_id,
+                "subject": "Cloudinary Deletion Status: "+ "Success" if response else "Failed"
+            },
+            "sns": {
+                "body": "Cloudinary Deleted Assets Data for: "+ report_id,
+                "subject": "Cloudinary Report Status: "+ "Success" if response else "Failed"
+            }
+        }]
+        self.notifier.notify()
         return True
