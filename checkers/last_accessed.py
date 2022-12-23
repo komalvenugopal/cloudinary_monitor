@@ -115,7 +115,7 @@ class CloudinaryChecker(object):
     def delete_resources( self, domain, report_id ):
         logging.info("Deletion Started at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+ " for " + report_id)
         nrows=0
-        chunks=pd.read_csv(report_id+".csv",chunksize=3)
+        chunks=pd.read_csv(report_id+".csv",chunksize=100)
                 
         for chunk in chunks:
             chunk_groups = chunk.groupby(by='resource_type',sort=None)
