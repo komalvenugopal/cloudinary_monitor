@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
         ''' GENERATE '''
         # folders = checker.get_folders()
-        # report_id = generate_report(checker=checker, resource_type=["videos"], to_date="2022-07-23")
+        # report_id = generate_report(checker=checker, resource_type="video", to_date="2022-07-23")
         # resources = fetch_report(domain=domain, checker=checker, report_id=report_id, sleep_seconds=300)
 
         ''' DELETE '''
