@@ -78,7 +78,14 @@ class CloudinaryChecker(object):
                 next_cursor = response["next_cursor"]
                 print(next_cursor)
             total_resources.extend(resources)
-            asset_ids = [[resource["asset_id"],resource["public_id"],resource["url"],resource["resource_type"],resource["type"],resource["access_mode"],resource["last_access"]] for resource in resources]
+
+            asset_ids = []
+            for resource in resources:
+                created_at = datetime.datetime.strptime(resource['created_at'], '%Y-%m-%dT%H:%M:%SZ')
+                if(created_at < self.created_before and created_at > self.created_after):
+                    asset_ids.append([
+                        resource["asset_id"],resource["public_id"],resource["url"],resource["resource_type"],resource["type"],resource["access_mode"],resource["last_access"]
+                    ])
             for row in asset_ids:
                 writer.writerow(row)
             if len(resources) < max_results:
@@ -116,7 +123,7 @@ class CloudinaryChecker(object):
         logging.info("Deletion Started at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+ " for " + report_id)
         nrows=0
         chunks=pd.read_csv(report_id+".csv",chunksize=100)
-                
+        response=None   
         for chunk in chunks:
             chunk_groups = chunk.groupby(by='resource_type',sort=None)
             for group in chunk_groups:
